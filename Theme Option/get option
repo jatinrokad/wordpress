@@ -1,0 +1,17 @@
+// header.php
+
+/*  get Header Image  */
+<img src="<?php echo stripslashes(get_option('rj_header_img')); ?>"/>
+
+/* get logo */
+<img src="<?php echo stripslashes(get_option('rj_logo')); ?>"/>
+
+
+// footer.php
+
+/* get custom style */
+<style type="text/css"> <?php echo get_option('rj_custom_css'); ?></style>
+
+/* get fevicon */
+<img s<?php echo stripslashes(get_option('rj_favicon')); ?>"/>
+
