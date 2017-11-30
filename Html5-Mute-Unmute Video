@@ -1,0 +1,34 @@
+/*
+Add Html5 video and add Mute-unmute css
+*/
+button.tp-video-button.tp-vid-full-screen, .tp-video-seek-bar-wrap, button.tp-video-button.tp-vid-play-pause, .tp-video-vol-bar-wrap {
+    display: none;
+}
+.tp-video-controls{
+opacity: 1;
+}
+
+.rev_slider video {pointer-events: none}
+.rev_slider video::-webkit-media-controls-start-playback-button {
+    display: none!important;
+    -webkit-appearance: none;
+}
+.tp-video-play-button {display: none !important}
+.tp-video-controls {
+    top: 0;
+}
+button.tp-video-button.tp-vid-mute {
+    float: right;
+    background: yellow;
+    padding: 5px !important;
+    color: #000;
+}
+.tp-video-button-wrap {
+    width: 48%;
+}
+.tp-video-controls {
+    top: 0;
+    width: 100%;
+    float: right;
+    background: transparent;
+}
