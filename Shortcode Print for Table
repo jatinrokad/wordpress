@@ -1,0 +1,37 @@
+function event_shortcode() {
+
+	$args = array(
+	'posts_per_page'   => -1,
+	'orderby'          => 'date',
+	'order'            => 'DESC',
+	'post_type'        => 'book',
+	'post_status'      => 'publish',
+	//'suppress_filters' => true 
+	);
+	$posts_array = get_posts( $args );
+
+		$event.="<div class='row'>";
+		$event.="<table class='table table-bordered'>";
+		$event.="<thead><tr>";
+		$event.="<th>Date</th>";
+		$event.="<th>Name</th>";
+		$event.="<th>Download</th>";
+		$event.="<th>Register</th></tr></thead><tbody>";
+		
+		foreach ($posts_array as $post) {
+			$id =$post->ID;
+			$date = get_field('date',$id);
+			$file = get_field('document',$id);
+			$register = get_field('rregister',$id);
+			$event.="<tr>";
+			$event.="<td>".$date."</td>";
+		$event.="<td>".$post->post_title."</td>";
+		$event.="<td><a href=".$file." target='_blank' download><input type='button' class='btn btn-primary' value='Download'></a></td>";
+		$event.="<td><a href=".$register." target='_blank'><input type='button' class='btn btn-primary' value='Register'></a></td>";
+		$event.="</tr>";
+		}
+		$event.="</tbody></table></div>";
+
+		return $event;
+	}
+	add_shortcode( 'upcoming_event', 'event_shortcode' );
