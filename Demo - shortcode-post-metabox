@@ -1,0 +1,135 @@
+function wpdocs_codex_book_init() {
+    $labels = array(
+        'name'                  => _x( 'Books', 'Post type general name', 'textdomain' ),
+        'singular_name'         => _x( 'Book', 'Post type singular name', 'textdomain' ),
+        'menu_name'             => _x( 'Books', 'Admin Menu text', 'textdomain' ),
+        'name_admin_bar'        => _x( 'Book', 'Add New on Toolbar', 'textdomain' ),
+        'add_new'               => __( 'Add New', 'textdomain' ),
+        'add_new_item'          => __( 'Add New Book', 'textdomain' ),
+        'new_item'              => __( 'New Book', 'textdomain' ),
+        'edit_item'             => __( 'Edit Book', 'textdomain' ),
+        'view_item'             => __( 'View Book', 'textdomain' ),
+        'all_items'             => __( 'All Books', 'textdomain' ),
+        'search_items'          => __( 'Search Books', 'textdomain' ),
+        'parent_item_colon'     => __( 'Parent Books:', 'textdomain' ),
+        'not_found'             => __( 'No books found.', 'textdomain' ),
+        'not_found_in_trash'    => __( 'No books found in Trash.', 'textdomain' ),
+        'featured_image'        => _x( 'Book Cover Image', 'Overrides the “Featured Image” phrase for this post type. Added in 4.3', 'textdomain' ),
+        'set_featured_image'    => _x( 'Set cover image', 'Overrides the “Set featured image” phrase for this post type. Added in 4.3', 'textdomain' ),
+        'remove_featured_image' => _x( 'Remove cover image', 'Overrides the “Remove featured image” phrase for this post type. Added in 4.3', 'textdomain' ),
+        'use_featured_image'    => _x( 'Use as cover image', 'Overrides the “Use as featured image” phrase for this post type. Added in 4.3', 'textdomain' ),
+        'archives'              => _x( 'Book archives', 'The post type archive label used in nav menus. Default “Post Archives”. Added in 4.4', 'textdomain' ),
+        'insert_into_item'      => _x( 'Insert into book', 'Overrides the “Insert into post”/”Insert into page” phrase (used when inserting media into a post). Added in 4.4', 'textdomain' ),
+        'uploaded_to_this_item' => _x( 'Uploaded to this book', 'Overrides the “Uploaded to this post”/”Uploaded to this page” phrase (used when viewing media attached to a post). Added in 4.4', 'textdomain' ),
+        'filter_items_list'     => _x( 'Filter books list', 'Screen reader text for the filter links heading on the post type listing screen. Default “Filter posts list”/”Filter pages list”. Added in 4.4', 'textdomain' ),
+        'items_list_navigation' => _x( 'Books list navigation', 'Screen reader text for the pagination heading on the post type listing screen. Default “Posts list navigation”/”Pages list navigation”. Added in 4.4', 'textdomain' ),
+        'items_list'            => _x( 'Books list', 'Screen reader text for the items list heading on the post type listing screen. Default “Posts list”/”Pages list”. Added in 4.4', 'textdomain' ),
+    );
+ 
+    $args = array(
+        'labels'             => $labels,
+        'public'             => true,
+        'publicly_queryable' => true,
+        'show_ui'            => true,
+        'show_in_menu'       => true,
+        'query_var'          => true,
+        'rewrite'            => array( 'slug' => 'book' ),
+        'capability_type'    => 'post',
+        'has_archive'        => true,
+        'hierarchical'       => false,
+        'menu_position'      => null,
+        'supports'           => array( 'title', 'editor', 'author', 'thumbnail', 'excerpt', 'comments' ),
+    );
+ 
+    register_post_type( 'book', $args );
+}
+ 
+add_action( 'init', 'wpdocs_codex_book_init' );
+
+function event_shortcode() {
+
+	$args = array(
+	'posts_per_page'   => -1,
+	'orderby'          => 'date',
+	'order'            => 'DESC',
+	'post_type'        => 'book',
+	'post_status'      => 'publish',
+	//'suppress_filters' => true 
+	);
+	
+	$posts_array = get_posts( $args );
+
+		$event.="<div class='row'>";
+		$event.="<table class='table table-bordered'>";
+		$event.="<thead><tr>";
+		$event.="<th>Date</th>";
+		$event.="<th>Name</th>";
+		$event.="<th>Download</th>";
+		$event.="<th>Register</th></tr></thead><tbody>";
+		
+		foreach ($posts_array as $post) {
+			$id =$post->ID;
+			$date = get_field('date',$id);
+			$file = get_field('document',$id);
+			$register = get_field('rregister',$id);
+			$event.="<tr>";
+			$event.="<td>".$date."</td>";
+		$event.="<td>".$post->post_title."</td>";
+		$event.="<td><a href=".$file." target='_blank' download><input type='button' class='btn btn-primary' value='Download'></a></td>";
+		$event.="<td><a href=".$register." target='_blank'><input type='button' class='btn btn-primary' value='Register'></a></td>";
+		$event.="</tr>";
+		}
+		$event.="</tbody></table></div>";
+
+		return $event;
+	}
+	add_shortcode( 'upcoming_event', 'event_shortcode' );
+
+	function wporg_add_custom_box()
+{
+    $screens = ['book', 'wporg_cpt'];
+    foreach ($screens as $screen) {
+        add_meta_box(
+            'wporg_box_id',           // Unique ID
+            'Custom Meta Box Title',  // Box title
+            'wporg_custom_box_html',  // Content callback, must be of type callable
+            $screen                   // Post type
+        );
+    }
+}
+add_action('add_meta_boxes', 'wporg_add_custom_box');
+
+function wporg_custom_box_html($book)
+{
+	$id = get_the_ID();
+	$name = get_post_meta($id,'fname', true);
+	$sex = get_post_meta($id,'sex', true);
+    ?>
+
+    <label for="wporg_field">Name</label>
+    <input type="text" name="wporg_name" id="wporg_name" value="<?php echo $name; ?>" class="postbox">
+    <br>
+    <label for="wporg_field">Description for this field</label>
+    <select name="wporg_sex" id="wporg_sex" class="postbox">
+        <option value="">Sex</option>
+        <option value="male" <?php selected($sex, 'male'); ?>>Male</option>
+        <option value="female" <?php selected($sex, 'female'); ?>>Female</option>
+    </select>
+    <?php
+}
+
+function wporg_save_postdata($post_id)
+{
+        update_post_meta(
+            $post_id,
+            'fname',
+            $_POST['wporg_name']
+        );
+       update_post_meta(
+       		$post_id,
+       		'sex',
+       		$_POST['wporg_sex']
+
+       );
+}
+add_action('save_post', 'wporg_save_postdata');
