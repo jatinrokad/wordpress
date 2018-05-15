@@ -183,7 +183,7 @@ function send_email(){
 
 	  $address = $_POST['address'];
 	  $email = $_POST['email'];
-      	  $subject = "Bright Computer Education Address Location";
+      	  $subject = "Address Location";
 	  $email_body = "<h3>Thanks for Visit our website</h3>.<br>".
 		"<h2>Address</h2>.<br>".
 		 "$address. <br>";
