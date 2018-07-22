@@ -1,0 +1,47 @@
+/***********    Script and js for Owl- Carousel Slider  **************/
+
+	wp_enqueue_style( 'slider-css', get_template_directory_uri() . '/css/owl.carousel.css', '', '', false);
+	wp_enqueue_style( 'slider-theme-css', get_template_directory_uri() . '/css/owl.theme.default.css', '', '', false);
+	wp_enqueue_script( 'slider-js', get_template_directory_uri() . '/js/owl.carousel.min.js', '', '', true );
+
+/*************  Slider Shortcode   ***************/
+
+function slider_func() {
+	$var = '';
+	$args = array(
+	'posts_per_page'   => -1,
+	'post_type'        => 'slider',
+	'post_status'      => 'publish',
+);
+$slider = get_posts( $args );
+
+		$var .=	'<section class="banner-area relative owl-carousel owl-theme" id="home">';
+		
+		foreach ($slider as $slide) {
+			$var .= '<div class="item">';
+			$var .= '<div class="container">';
+			$var .= '<div class="row fullscreen align-items-center justify-content-center">';
+				$var .= '<div class="banner-content col-lg-6 col-md-12">';
+					$var .= '<h1 class="text-uppercase">' . $slide->post_title . '</h1>';
+					$var .= '<p>' . $slide->post_content . '</p>';
+					
+					$var .= '<button class="primary-btn2 mt-20 text-uppercase ">';	
+						$var .= get_post_meta($slide->ID, 'button_link', true);
+					$var .= '<span class="lnr lnr-arrow-right"></span></button>';
+				
+				$var .= '</div>';
+				$var .= '<div class="col-lg-6 d-flex align-self-end img-right">';
+					$var .= '<img class="img-fluid" alt="" src="'. get_permalink() .'">' . get_the_post_thumbnail($slide->ID, 'full').'';
+				$var .= '</div></div></div></div>';
+		}
+		$var .= '</section>';
+	return $var;
+}
+add_shortcode( 'slider', 'slider_func' );
+
+
+/************  Shortcode for use anywhere  ******************
+*************************************************************
+************************   [slider]  ************************
+*************************************************************/
+
