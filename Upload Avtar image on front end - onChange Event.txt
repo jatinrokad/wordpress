@@ -1,0 +1,125 @@
+
+Plugin: USER PROFILE PICTURE
+
+
+/************     Main File  ******************************************/
+
+<!-- Loader -->
+<div id='loader' style='display: none;'>
+  <!-- <img src='reload.gif' width='32px' height='32px'> -->
+  <span>Loading...</span>
+</div>
+
+<!-- View Image -->
+<?php
+	if ( function_exists ( 'mt_profile_img' ) ) {
+	    $author_id = 2;
+	    mt_profile_img( $author_id, 
+	        array(
+	            'size' => 'thumbnail',
+	            'attr' => array( 'alt' => 'Alternative Text' ),
+	            'echo' => true,
+	        )
+	    );
+	}
+?>
+
+<!-- Upload File -->
+<form class="fileUpload" enctype="multipart/form-data">
+   <div class="form-group">
+      <label>Choose File:</label>
+      <input type="file" id="file" name="file" accept="image/*" />
+   </div>
+</form>
+
+
+/********************   Script  *******************************/
+
+<script type="text/javascript">
+jQuery(function(jQuery) {
+    jQuery('body').on('change', '#file', function() {
+        $this = jQuery(this);
+        file_data = jQuery(this).prop('files')[0];
+        form_data = new FormData();
+        form_data.append('file', file_data);
+        form_data.append('action', 'nyu_file_upload');
+ 
+        jQuery.ajax({
+            url: "<?php echo admin_url('admin-ajax.php'); ?>",
+            type: 'POST',
+            contentType: false,
+            processData: false,
+            data: form_data,
+            beforeSend: function() {
+              jQuery("#loader").show();
+            },
+            success: function (response) {
+                $this.val('');
+                //alert('File uploaded successfully.');
+                location.reload();
+            }
+        });
+    });    
+});
+</script>
+
+/******************* Function.php  *********************************/
+
+add_action( 'wp_ajax_nyu_file_upload', 'nyu_file_upload_callback' );
+add_action( 'wp_ajax_nopriv_nyu_file_upload', 'nyu_file_upload_callback' );
+
+function nyu_file_upload_callback() {
+
+	require( dirname(__FILE__) . '/../../../wp-load.php' );
+		global $wpdb;
+	$wordpress_upload_dir = wp_upload_dir();
+	$i = 1; 
+	 
+	$profilepicture = $_FILES['file'];
+	$new_file_path = $wordpress_upload_dir['path'] . '/' . $profilepicture['name'];
+	$new_file_mime = mime_content_type( $profilepicture['tmp_name'] );
+	 
+	if( empty( $profilepicture ) )
+		die( 'File is not selected.' );
+	 
+	if( $profilepicture['error'] )
+		die( $profilepicture['error'] );
+	 
+	if( $profilepicture['size'] > wp_max_upload_size() )
+		die( 'It is too large than expected.' );
+	 
+	if( !in_array( $new_file_mime, get_allowed_mime_types() ) )
+		die( 'WordPress doesn\'t allow this type of uploads.' );
+	 
+	while( file_exists( $new_file_path ) ) {
+		$i++;
+		$new_file_path = $wordpress_upload_dir['path'] . '/' . $i . '_' . $profilepicture['name'];
+	}
+	 
+	if( move_uploaded_file( $profilepicture['tmp_name'], $new_file_path ) ) {
+		 
+	 	$upload_id = wp_insert_attachment( array(
+			'guid'           => $new_file_path, 
+			'post_mime_type' => $new_file_mime,
+			'post_title'     => preg_replace( '/\.[^.]+$/', '', $profilepicture['name'] ),
+			'post_content'   => '',
+			'post_status'    => 'inherit'
+		), $new_file_path );
+	 	
+		$request = new WP_REST_Request( 'POST', '/mpp/v2/profile-image/change' );
+		$request->set_param( 'media_id', $upload_id ); 
+		$request->set_param( 'user_id', 2 ); 
+		$request->set_header( 'X-WP-Nonce', wp_create_nonce( 'wp_rest' ) );
+		$response = rest_do_request( $request );
+
+	 	$attach_id = wp_insert_attachment($upload_id, $new_file_path);
+		$attach_data = wp_generate_attachment_metadata($upload_id, $new_file_path);
+			
+		wp_update_attachment_metadata($attach_id, $attach_data);
+		update_user_meta(2, $wpdb->get_blog_prefix() . 'user_avatar', $attach_id);
+
+		require_once( ABSPATH . 'wp-admin/includes/image.php' );
+	 	wp_redirect( $wordpress_upload_dir['url'] . '/' . basename( $new_file_path ) ); 
+	}
+    wp_die();
+}
